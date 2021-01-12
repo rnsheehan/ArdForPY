@@ -8,8 +8,13 @@
 // to switch between writing a frequency and reading a voltage necessiates some string processing on my part
 // R. Sheehan 12 - 11 - 2020
 
+// For queries on any of the Arduino commands see https://www.arduino.cc/reference/en/
+
 //Include relevant libraries
 //In ths case SPI for communicating with the Minigen and the Minigens own libraries to allow custom Minigen commands
+// Source code is stored here https://github.com/sparkfun/SparkFun_MiniGen_Arduino_Library
+// Follow the instructions on how to install the library for the Arduino IDE
+// More instructions can be found at the SparkFun MiniGen hook-up guide https://learn.sparkfun.com/tutorials/minigen-hookup-guide
 #include <SPI.h>
 #include <SparkFun_MiniGen.h>
 
@@ -31,11 +36,13 @@ float FMIN = 100.0; // Minimum frequency setting for the board, it can actually 
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
 
-int PLACES = 3; // Output voltage readings to the nearest millivolt
+int PLACES = 4; // Output voltage readings to the nearest millivolt
 
+// Commands defined here should be consistent with the DC test code
 const char readCmdStr = 'r'; // read data command string
 const char writeCmdStr = 'w'; // write data command string
-const char writeAngStr = 'a'; // write analog output
+const char writeAngStrA = 'a'; // write analog output from DCPINA
+const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
@@ -45,8 +52,18 @@ void setup() {
   
   Serial.begin(9600); // Set up serial monitor at 9600 BAUD, BAUD can probably increase
   delay(delay_val); // Delay for opening the serial monitor 
+
+  // Run these instructions to set up the SparkFun MiniGen
+  
+  // If this set of instructions is correctly executed the output from the SparkFun MiniGen should be a 1 kHz sine-wave
+  // with amplitude of 1V and Vin/2 = 1.65 V DC offset
+  
+  // Any other output means that the setup operation has not been executed correctly. 
+  // The only way I could find to get around this was repeated power cycling and sketch uploading
+  
+  // More instructions can be found at the SparkFun MiniGen hook-up guide https://learn.sparkfun.com/tutorials/minigen-hookup-guide
  
-  gen.reset(); // Clear the registers in the AD9837 chip, so we're starting from a known location, board outputs at f = 100 Hz
+  gen.reset(); // Clear the registers in the AD9837 chip, so we're starting from a known location, board outputs at f = 100 Hz after this call
   if(loud){
     Serial.println("Reset!"); // Test Code
   }
@@ -80,7 +97,10 @@ void setup() {
   delay(delay_val); // Delay for opening the serial monitor
   if(loud){
     Serial.println("ready");
-  } 
+  }
+
+  // At this point if everything has executed correctly you should see a 1 Vpp sine wave with frequency of 1 kHz
+  // Admittedly difficult to check if you don't have an oscilloscope
 }
 
 void loop() {
@@ -88,6 +108,7 @@ void loop() {
 
   // Loop checks for characters entered into serial monitor. 
   // Characters must be typed in bar and then the "enter" button must be pressed.
+  // for details see https://www.arduino.cc/reference/en/language/functions/communication/serial/available/
   if (Serial.available() > 0) { //If there are characters (data) in the buffer
 
     // read the command that has been input
@@ -147,6 +168,8 @@ void loop() {
         }
 
         A0max -= VOFF; // Substract the DC offset value from the input signal reading
+        
+        // No need to subtract VOFF from A1MAX since the load, presumably an LRC filter, will act as DC block
         
         // During operation you will only want to look at the voltages that are being read at the analog pins
         // No need for messages to be printed to the console.         
@@ -220,30 +243,5 @@ float analogVoltageRead(int pin)
   }
   else{
     return 0.0;   
-  }
-}
-
-void analogVoltageWrite(int pin, float voltage)
-{
-  // function for converting a voltage value to bit value for analogWrite
-  // analogRead values go from 0 to 1023, analogWrite values from 0 to 255
-  // R. Sheehan 4 - 11 - 2020
-
-  bool c1 = pin == A0;
-  bool c2 = pin == A1; 
-  bool c3 = c1 || c2; // must be A0 or || to write out voltage
-  bool c4 = voltage >= 0.0; // voltage value must be in range
-  bool c5 = voltage < 3.3; 
-  bool c10 = c3 && c4 && c5; 
-
-  if(c10){
-    float n_bits = 1023;  
-    float Vmax = 3.3;
-    int writeVal = int(((4.0*n_bits)/Vmax)*voltage);
-
-    analogWrite(pin, writeVal);   
-  }
-  else{
-    analogWrite(A0, 0);
   }
 }

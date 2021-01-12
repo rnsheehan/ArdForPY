@@ -2,6 +2,8 @@
 // Keep commands consistent with SigGen Sketch
 // R. Sheehan 16 - 11 - 2020
 
+// For queries on any of the Arduino commands see https://www.arduino.cc/reference/en/
+
 // Constants used in the sketch
 int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 3000; // delay value in units of ms
@@ -21,6 +23,7 @@ int PLACES = 4; // Output voltage readings to the nearest millivolt
 int DCPINA = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 
+// Commands defined here should be consistent with the AC test code
 const char readCmdStr = 'r'; // read data command string for reading max AC input
 const char writeCmdStr = 'w'; // write data command string for writing frequency values
 const char writeAngStrA = 'a'; // write analog output from DCPINA
@@ -86,7 +89,7 @@ void loop() {
             // VMIN = 0 V, VMAX = 5 V
             float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
             int DC =  int( 51 * Vout ); // compute duty cycle based on DC = 255*(Vout/5) = 51 * Vout
-            int pin = 9; 
+            //int pin = 9; 
   
             if(loud){
               Serial.println("Perform steps necessary for write analog command"); 
@@ -115,7 +118,7 @@ void loop() {
             // VMIN = 0 V, VMAX = 5 V
             float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
             int DC =  int( 51 * Vout ); // compute duty cycle based on DC = 255*(Vout/5) = 51 * Vout
-            int pin = 9; 
+            //int pin = 9; 
   
             if(loud){
               Serial.println("Perform steps necessary for write analog command"); 
@@ -141,7 +144,7 @@ void loop() {
           }
   
           // During operation you will only want to look at the voltages that are being read at the analog pins
-          // No need for messages to be printed to the console. 
+          // No need for text messages to be printed to the console. 
           Serial.print( analogVoltageRead(A0), PLACES); 
           Serial.print(" , "); 
           Serial.print( analogVoltageRead(A1), PLACES); 
@@ -176,8 +179,11 @@ float analogVoltageRead(int pin)
 {
   // function for converting a bit-reading to a voltage value
   // analogRead values go from 0 to 1023, analogWrite values from 0 to 255
-  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 3.3V):
+  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
   // R. Sheehan 4 - 11 - 2020
+
+  // function can be used for either of Arduino Micro or ItsyBitsyM4
+  // Vmax value must be defined depending on board
 
   // The pins A0->A5 are numbered 14 --> 19
 
@@ -205,17 +211,20 @@ void analogVoltageWrite(int pin, float voltage)
   // analogRead values go from 0 to 1023, analogWrite values from 0 to 255
   // R. Sheehan 4 - 11 - 2020
 
+  // function can only be used for ItsyBitsyM4
+  // not applicable for Arduino Micro
+
   bool c1 = pin == A0;
   bool c2 = pin == A1; 
-  bool c3 = c1 || c2; // must be A0 or || to write out voltage
+  bool c3 = c1 || c2; // must be A0 or A1 to write out voltage using ItsyBitsyM4
   bool c4 = voltage >= 0.0; // voltage value must be in range
   bool c5 = voltage < 3.3; 
   bool c10 = c3 && c4 && c5; 
 
   if(c10){
     float n_bits = 1023;  
-    float Vmax = 5.0; // This assumes a 5V reference for the board, this is applicable for the Arduino Micro
-    //float Vmax = 3.3; // This assumes a 3.3V reference for the board, this is applicable for the ItsyBitsyM4
+    //float Vmax = 5.0; // This assumes a 5V reference for the board, this is applicable for the Arduino Micro
+    float Vmax = 3.3; // This assumes a 3.3V reference for the board, this is applicable for the ItsyBitsyM4
     int writeVal = int(((4.0*n_bits)/Vmax)*voltage);
 
     analogWrite(pin, writeVal);   
