@@ -23,7 +23,7 @@
 MiniGen gen;
 
 // Constants used in the sketch
-int loud = 1; // boolean needed for printing comments, debug commands etc, loud = 1 => print
+int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 3000; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
@@ -32,7 +32,7 @@ int deleteRead = 0; // Variable to read in variable so it is deleted from the bu
 float VOFF = 1.65; // This is the DC offset applied to the output of the SparkFun MiniGen VOFF = Vin/2, Vin = 3.3V 
 float VMIN = 0.0; // This is the min DC value that can be handled by the Arduino Micro
 float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino Micro 
-float FMIN = 100.0; // Minimum frequency setting for the board, it can actually go lower than this but I'm setting 100 Hz as lower limit
+float FMIN = 20.0; // Minimum frequency setting for the board, I've found that output is stable at 20 Hz
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
 
@@ -44,6 +44,7 @@ const char writeCmdStr = 'w'; // write data command string
 const char writeAngStrA = 'a'; // write analog output from DCPINA
 const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
+const char readData = 's'; // read data from Analog Inputs, No Formatting
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 
@@ -170,6 +171,8 @@ void loop() {
         A0max -= VOFF; // Substract the DC offset value from the input signal reading
         
         // No need to subtract VOFF from A1MAX since the load, presumably an LRC filter, will act as DC block
+        // Not true in general, change calculation so the measurement returned is | max_val - min_val 
+        // This obviates the need to subtract the DC offset value
         
         // During operation you will only want to look at the voltages that are being read at the analog pins
         // No need for messages to be printed to the console.         
@@ -203,6 +206,24 @@ void loop() {
         gen.adjustFreq(MiniGen::FREQ0, freqReg); // Adjust the frequency. This is a full 32-bit write.
 
         Serial.println("Frequency Updated");         
+      }
+      else if(input[0] == readData)
+      {
+        // read the data from the Analog Inputs
+                
+        // No need for text messages to be printed to the console. 
+        Serial.print( analogVoltageRead(A0), PLACES); 
+        Serial.print(" , "); 
+        Serial.print( analogVoltageRead(A1), PLACES); 
+        Serial.print(" , "); 
+        Serial.print( analogVoltageRead(A2), PLACES); 
+        Serial.print(" , "); 
+        Serial.print( analogVoltageRead(A3), PLACES); 
+        Serial.print(" , "); 
+        Serial.print( analogVoltageRead(A4), PLACES); 
+        Serial.print(" , "); 
+        Serial.print( analogVoltageRead(A5), PLACES); 
+        Serial.println("");  
       }
       else{ // The command was input incorrectly
         
