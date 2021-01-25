@@ -35,6 +35,8 @@ float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino
 float FMIN = 20.0; // Minimum frequency setting for the board, I've found that output is stable at 20 Hz
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
+float SMIN = 0.5; // Minumum sampling time in ms, should enable sampling of 1 kHz wave
+float SMAX = 50; // Minumum sampling time in ms, should enable sample of 10 kHz wave
 
 int PLACES = 4; // Output voltage readings to the nearest millivolt
 
@@ -44,7 +46,7 @@ const char writeCmdStr = 'w'; // write data command string
 const char writeAngStrA = 'a'; // write analog output from DCPINA
 const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
-const char readData = 's'; // read data from Analog Inputs, No Formatting
+const char smplData = 's'; // read data from Analog Inputs, No Formatting
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 
@@ -154,31 +156,44 @@ void loop() {
         // This loop will perform multiple measurements of the voltages on pins A0 and A1 and reaturn the max values found
         int Nreads = 5000; 
         int count = 0; 
-        float A0max = 0.0, A1max = 0.0, A0val, A1val; 
+        float A0max = 0.0, A1max = 0.0, A0min = 6.0, A1min = 6.0, A0hi, A0lo, A1hi, A1lo, A0val, A1val; 
         while(count < Nreads){
+
+          A0val = analogVoltageRead(A0); // get the voltage reading from pin A0
           
-          if( (A0val = analogVoltageRead(A0)) > A0max){
+          A1val = analogVoltageRead(A1); // get the voltage reading from pin A1
+
+          // test readings to see if they are max values
+          if( A0val > A0max){
             A0max = A0val;     
           }
 
-          if( (A1val = analogVoltageRead(A1)) > A1max){
+          if( A1val > A1max){
             A1max = A1val;     
+          }
+
+          // test readings to see if they are min values
+          if( A0val < A0min){
+            A0min = A0val;     
+          }
+
+          if( A1val < A1min){
+            A1min = A1val;     
           }
           
           count++; 
         }
 
-        A0max -= VOFF; // Substract the DC offset value from the input signal reading
-        
-        // No need to subtract VOFF from A1MAX since the load, presumably an LRC filter, will act as DC block
-        // Not true in general, change calculation so the measurement returned is | max_val - min_val 
-        // This obviates the need to subtract the DC offset value
-        
+        // Store measured peak-to-peak voltage in A0val and A1val
+        A0val = A0max - A0min; 
+
+        A1val = A1max - A1min; 
+                
         // During operation you will only want to look at the voltages that are being read at the analog pins
         // No need for messages to be printed to the console.         
-        Serial.print(A0max, PLACES); 
+        Serial.print(A0val, PLACES); 
         Serial.print(" , "); 
-        Serial.print(A1max, PLACES);         
+        Serial.print(A1val, PLACES);         
         Serial.println(); 
       }
       else if(input[0] == writeCmdStr){ // test to see if write frequency command is required
@@ -207,23 +222,34 @@ void loop() {
 
         Serial.println("Frequency Updated");         
       }
-      else if(input[0] == readData)
+      else if(input[0] == smplData)
       {
-        // read the data from the Analog Inputs
-                
-        // No need for text messages to be printed to the console. 
-        Serial.print( analogVoltageRead(A0), PLACES); 
-        Serial.print(" , "); 
-        Serial.print( analogVoltageRead(A1), PLACES); 
-        Serial.print(" , "); 
-        Serial.print( analogVoltageRead(A2), PLACES); 
-        Serial.print(" , "); 
-        Serial.print( analogVoltageRead(A3), PLACES); 
-        Serial.print(" , "); 
-        Serial.print( analogVoltageRead(A4), PLACES); 
-        Serial.print(" , "); 
-        Serial.print( analogVoltageRead(A5), PLACES); 
-        Serial.println("");  
+        // smpl the data from the Analog Inputs at fixed time intervals
+        input.remove(0,1); // remove the smplData command from the start of the string
+        float tsmpl = min( max( SMIN, input.toFloat() ), SMAX ); // time between measurements in ms
+        float tsum = 0.0; 
+        //tsmpl *= 1000; // convert time in ms to time in us
+        
+        for(int i=0; i<50; i++){
+          // No need for text messages to be printed to the console. 
+          Serial.print( tsum, PLACES); 
+          Serial.print(" , ");
+          Serial.print( analogVoltageRead(A0), PLACES); 
+          Serial.print(" , "); 
+          Serial.print( analogVoltageRead(A1), PLACES); 
+          /*Serial.print(" , "); 
+          Serial.print( analogVoltageRead(A2), PLACES); 
+          Serial.print(" , "); 
+          Serial.print( analogVoltageRead(A3), PLACES); 
+          Serial.print(" , "); 
+          Serial.print( analogVoltageRead(A4), PLACES); 
+          Serial.print(" , "); 
+          Serial.print( analogVoltageRead(A5), PLACES);*/ 
+          Serial.println("");  
+          tsum += tsmpl; 
+          delay(tsmpl); // Delay for opening the serial monitor 
+          //delayMicroseconds(tsmpl); // Delay for opening the serial monitor 
+        }
       }
       else{ // The command was input incorrectly
         
