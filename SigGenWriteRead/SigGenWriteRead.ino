@@ -35,8 +35,8 @@ float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino
 float FMIN = 20.0; // Minimum frequency setting for the board, I've found that output is stable at 20 Hz
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
-float SMIN = 0.5; // Minumum sampling time in ms, should enable sampling of 1 kHz wave
-float SMAX = 50; // Minumum sampling time in ms, should enable sample of 10 kHz wave
+unsigned int SMIN = 5; // Minumum sampling time in us, should enable sampling of 100 kHz wave
+unsigned int SMAX = 15000; // Maximum sampling time in us, should enable sample of 34 Hz wave
 
 int PLACES = 4; // Output voltage readings to the nearest millivolt
 
@@ -229,6 +229,10 @@ void loop() {
 //        // Must try a different approach
 //        // R. Sheehan 25 - 1 - 2021
 //        
+//        // This does not sample the way you want it to because the sampling time by this method is around 20 ms
+//        // Better to proceed by sampling data, store measurements in array and then output values to screen after sampling
+//        // R. Sheehan 26 - 1 - 2021     
+//        
 //        // smpl the data from the Analog Inputs at fixed time intervals
 //        input.remove(0,1); // remove the smplData command from the start of the string
 //        float tsmpl = min( max( SMIN, input.toFloat() ), SMAX ); // time between measurements in ms
@@ -261,16 +265,19 @@ void loop() {
         // Sample the data, store it in memory, then print it to serial console
         // See if you can print it in one line so that it can be read
 
+        // Sampling is not very accurate for frequencies above 100 Hz
+        // Sampling is accurate to within 1 Hz in the range [20 Hz, 100 Hz]
+
         const int Nsmpls = 500; 
         int smpl_data[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
         //unsigned long tsmpl = 1; // try a fixed sample period for now, units of ms
         // https://www.arduino.cc/reference/en/language/functions/time/delaymicroseconds/
-        unsigned int tsmpl = 500; // try a fixed sample period for now, units of us, max microsecond delay is 16383
+        input.remove(0,1); // remove the smplData command from the start of the string
+        unsigned int tsmpl = min( max( SMIN, input.toInt() ), SMAX );
 
         // sample the data, storing the bit values only, these can be converted later
         for(int i = 0; i<Nsmpls; i++){
-          smpl_data[i] = analogRead(A0); 
-          //delay(tsmpl);
+          smpl_data[i] = analogRead(A0);          
           delayMicroseconds(tsmpl);  
         }
 
