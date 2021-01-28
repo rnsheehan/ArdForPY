@@ -23,7 +23,7 @@
 MiniGen gen;
 
 // Constants used in the sketch
-int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
+int loud = 1; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 3000; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
