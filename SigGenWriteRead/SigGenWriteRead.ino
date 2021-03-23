@@ -23,7 +23,7 @@
 MiniGen gen;
 
 // Constants used in the sketch
-int loud = 1; // boolean needed for printing comments, debug commands etc, loud = 1 => print
+int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 3000; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
@@ -32,6 +32,7 @@ int deleteRead = 0; // Variable to read in variable so it is deleted from the bu
 float VOFF = 1.65; // This is the DC offset applied to the output of the SparkFun MiniGen VOFF = Vin/2, Vin = 3.3V 
 float VMIN = 0.0; // This is the min DC value that can be handled by the Arduino Micro
 float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino Micro 
+float VPULLUP = 2.5221; // Pull-Up Level used for reading AC signals
 float FMIN = 20.0; // Minimum frequency setting for the board, I've found that output is stable at 20 Hz
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
@@ -47,6 +48,8 @@ const char writeAngStrA = 'a'; // write analog output from DCPINA
 const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
 const char smplData = 's'; // read data from Analog Inputs, No Formatting
+const char smpl2Chan = 'g'; // sample data from two input channels
+const char readBasic = 'h'; // read input on all analog pins
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 
@@ -196,6 +199,23 @@ void loop() {
         Serial.print(A1val, PLACES);         
         Serial.println(); 
       }
+      else if(input[0] == readBasic){
+        // do a basic read on all analog input pins
+
+        // During operation you will only want to look at the voltages that are being read at the analog pins
+        // No need for messages to be printed to the console. 
+        Serial.print(analogVoltageRead(A0), PLACES); 
+        Serial.print(" , "); 
+        Serial.print(analogVoltageRead(A1), PLACES); 
+        Serial.print(" , "); 
+        Serial.print(analogVoltageRead(A2), PLACES); 
+        Serial.print(" , "); 
+        Serial.print(analogVoltageRead(A3), PLACES); 
+        Serial.print(" , "); 
+        Serial.print(analogVoltageRead(A4), PLACES); 
+        Serial.print(" , "); 
+        Serial.println(analogVoltageRead(A5), PLACES); 
+      }
       else if(input[0] == writeCmdStr){ // test to see if write frequency command is required
         
         // input was the write frequency command
@@ -292,6 +312,36 @@ void loop() {
         Serial.println(); // make sure to end output with eof character to avoid throwing error in LabVIEW
 
         // presumably array is deleted once it is out of scope? 
+      }
+      else if(input[0] == smpl2Chan){
+        // sample data from two channels  
+
+        const int Nsmpls = 500; 
+        int smpl_a[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
+        int smpl_b[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
+
+        input.remove(0,1); // remove the smplData command from the start of the string
+        unsigned int tsmpl = min( max( SMIN, input.toInt() ), SMAX );
+
+        // sample the data, storing the bit values only, these can be converted later
+        for(int i = 0; i<Nsmpls; i++){
+          smpl_a[i] = analogRead(A0);
+          smpl_b[i] = analogRead(A2);          
+          delayMicroseconds(tsmpl);  
+        }
+
+        // print the data to the screen, since the data has already been sampled it doesn't matter how long the printing takes
+        // all data must be printed on single line, since LabVIEW can only read single line at a time
+        float vdiff; 
+        for(int i=0; i<Nsmpls; i++){
+          vdiff = convertVoltageRead( smpl_a[i] ) - convertVoltageRead( smpl_b[i] );
+          //vdiff -= VPULLUP; 
+          Serial.print( vdiff, PLACES); 
+          if(i < Nsmpls - 1){
+            Serial.print(" , ");
+          }
+        }
+        Serial.println(); // make sure to end output with eof character to avoid throwing error in LabVIEW
       }
       else{ // The command was input incorrectly
         
