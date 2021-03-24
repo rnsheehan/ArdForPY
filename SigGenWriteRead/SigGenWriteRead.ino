@@ -136,26 +136,6 @@ void loop() {
       }
       
       if(input[0] == readCmdStr){ // test to see if read voltage command is required
-        
-        // input was the read voltage command
-        //Serial.println("Perform steps necessary for read command");  
-        //Serial.print("Voltage at pin A0: "); Serial.println(analogVoltageRead(A0));  
-        //Serial.print("Voltage at pin A1: "); Serial.println(analogVoltageRead(A1));
-
-        // During operation you will only want to look at the voltages that are being read at the analog pins
-        // No need for messages to be printed to the console. 
-//        Serial.print(analogVoltageRead(A0)); 
-//        Serial.print(" , "); 
-//        Serial.print(analogVoltageRead(A1)); 
-//        Serial.print(" , "); 
-//        Serial.print(analogVoltageRead(A2)); 
-//        Serial.print(" , "); 
-//        Serial.print(analogVoltageRead(A3)); 
-//        Serial.print(" , "); 
-//        Serial.print(analogVoltageRead(A4)); 
-//        Serial.print(" , "); 
-//        Serial.println(analogVoltageRead(A5)); 
-
         // This loop will perform multiple measurements of the voltages on pins A0 and A1 and reaturn the max values found
         int Nreads = 5000; 
         int count = 0; 
@@ -199,23 +179,6 @@ void loop() {
         Serial.print(A1val, PLACES);         
         Serial.println(); 
       }
-      else if(input[0] == readBasic){
-        // do a basic read on all analog input pins
-
-        // During operation you will only want to look at the voltages that are being read at the analog pins
-        // No need for messages to be printed to the console. 
-        Serial.print(analogVoltageRead(A0), PLACES); 
-        Serial.print(" , "); 
-        Serial.print(analogVoltageRead(A1), PLACES); 
-        Serial.print(" , "); 
-        Serial.print(analogVoltageRead(A2), PLACES); 
-        Serial.print(" , "); 
-        Serial.print(analogVoltageRead(A3), PLACES); 
-        Serial.print(" , "); 
-        Serial.print(analogVoltageRead(A4), PLACES); 
-        Serial.print(" , "); 
-        Serial.println(analogVoltageRead(A5), PLACES); 
-      }
       else if(input[0] == writeCmdStr){ // test to see if write frequency command is required
         
         // input was the write frequency command
@@ -242,44 +205,6 @@ void loop() {
 
         Serial.println("Frequency Updated");         
       }
-//      else if(input[0] == smplData)
-//      {
-//        // according to https://forum.arduino.cc/index.php?topic=408470.0
-//        // this approach to sampling takes 20 ms per sample, well in excess of what's needed
-//        // Must try a different approach
-//        // R. Sheehan 25 - 1 - 2021
-//        
-//        // This does not sample the way you want it to because the sampling time by this method is around 20 ms
-//        // Better to proceed by sampling data, store measurements in array and then output values to screen after sampling
-//        // R. Sheehan 26 - 1 - 2021     
-//        
-//        // smpl the data from the Analog Inputs at fixed time intervals
-//        input.remove(0,1); // remove the smplData command from the start of the string
-//        float tsmpl = min( max( SMIN, input.toFloat() ), SMAX ); // time between measurements in ms
-//        float tsum = 0.0; 
-//        //tsmpl *= 1000; // convert time in ms to time in us
-//        
-//        for(int i=0; i<50; i++){
-//          // No need for text messages to be printed to the console. 
-//          Serial.print( tsum, PLACES); 
-//          Serial.print(" , ");
-//          Serial.print( analogVoltageRead(A0), PLACES); 
-//          Serial.print(" , "); 
-//          Serial.print( analogVoltageRead(A1), PLACES); 
-//          /*Serial.print(" , "); 
-//          Serial.print( analogVoltageRead(A2), PLACES); 
-//          Serial.print(" , "); 
-//          Serial.print( analogVoltageRead(A3), PLACES); 
-//          Serial.print(" , "); 
-//          Serial.print( analogVoltageRead(A4), PLACES); 
-//          Serial.print(" , "); 
-//          Serial.print( analogVoltageRead(A5), PLACES);*/ 
-//          Serial.println("");  
-//          tsum += tsmpl; 
-//          delay(tsmpl); // Delay for opening the serial monitor 
-//          //delayMicroseconds(tsmpl); // Delay for opening the serial monitor 
-//        }
-//      }
       else if(input[0] == smplData){
         // Must try and reduce the amount of time spent printing the data points
         // Sample the data, store it in memory, then print it to serial console
@@ -288,7 +213,7 @@ void loop() {
         // Sampling is not very accurate for frequencies above 100 Hz
         // Sampling is accurate to within 1 Hz in the range [20 Hz, 100 Hz]
 
-        const int Nsmpls = 500; 
+        const int Nsmpls = 1000; 
         int smpl_data[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
         //unsigned long tsmpl = 1; // try a fixed sample period for now, units of ms
         // https://www.arduino.cc/reference/en/language/functions/time/delaymicroseconds/
@@ -312,36 +237,6 @@ void loop() {
         Serial.println(); // make sure to end output with eof character to avoid throwing error in LabVIEW
 
         // presumably array is deleted once it is out of scope? 
-      }
-      else if(input[0] == smpl2Chan){
-        // sample data from two channels  
-
-        const int Nsmpls = 500; 
-        int smpl_a[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
-        int smpl_b[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
-
-        input.remove(0,1); // remove the smplData command from the start of the string
-        unsigned int tsmpl = min( max( SMIN, input.toInt() ), SMAX );
-
-        // sample the data, storing the bit values only, these can be converted later
-        for(int i = 0; i<Nsmpls; i++){
-          smpl_a[i] = analogRead(A0);
-          smpl_b[i] = analogRead(A2);          
-          delayMicroseconds(tsmpl);  
-        }
-
-        // print the data to the screen, since the data has already been sampled it doesn't matter how long the printing takes
-        // all data must be printed on single line, since LabVIEW can only read single line at a time
-        float vdiff; 
-        for(int i=0; i<Nsmpls; i++){
-          vdiff = convertVoltageRead( smpl_a[i] ) - convertVoltageRead( smpl_b[i] );
-          //vdiff -= VPULLUP; 
-          Serial.print( vdiff, PLACES); 
-          if(i < Nsmpls - 1){
-            Serial.print(" , ");
-          }
-        }
-        Serial.println(); // make sure to end output with eof character to avoid throwing error in LabVIEW
       }
       else{ // The command was input incorrectly
         
