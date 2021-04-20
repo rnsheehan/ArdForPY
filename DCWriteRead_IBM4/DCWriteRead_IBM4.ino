@@ -40,7 +40,8 @@ void setup() {
   pinMode(A4, INPUT); 
   pinMode(A5, INPUT);  
 
-  analogReadResolution(12);
+  analogReadResolution(12); // in this case n-bits = 4096
+  analogWriteResolution(10); // in this case n-bits = 4096
   
   Serial.begin(9600); // Set up serial monitor at 9600 BAUD, BAUD can probably increase
   delay(delay_val); // Delay for opening the serial monitor 
@@ -160,7 +161,8 @@ float analogVoltageRead(int pin)
 
   if(c3){
     int sensorValue = analogRead(pin); 
-    float n_bits = 1023;  
+    //float n_bits = 1023; // 1024 = 2^10 this assumes 10-bit resolution, this is applicable for Arduino Micro
+    float n_bits = 4096; // 4096 = 2^12 this assumes 12-bit resolution, this is applicable for Arduino Micro
     //float Vmax = 5.0; // This assumes a 5V reference for the board, this is applicable for the Arduino Micro
     float Vmax = 3.3; // This assumes a 3.3V reference for the board, this is applicable for the ItsyBitsyM4
     float voltage = sensorValue*(Vmax / n_bits); 
@@ -186,10 +188,12 @@ void analogVoltageWrite(int pin, float voltage)
   bool c10 = c3 && c4 && c5; 
 
   if(c10){
-    float n_bits = 1023;  
+    float n_bits = 1023; // 1024 = 2^10 this assumes 10-bit resolution, this is applicable for Arduino Micro
+    //float n_bits = 4096; // 4096 = 2^12 this assumes 12-bit resolution, this is applicable for Arduino Micro
     //float Vmax = 5.0; // This assumes a 5V reference for the board, this is applicable for the Arduino Micro
     float Vmax = 3.3; // This assumes a 3.3V reference for the board, this is applicable for the ItsyBitsyM4
-    int writeVal = int(((4.0*n_bits)/Vmax)*voltage);
+    //int writeVal = int(((4.0*n_bits)/Vmax)*voltage);
+    int writeVal = int((n_bits/Vmax)*voltage);
 
     analogWrite(pin, writeVal);   
   }
