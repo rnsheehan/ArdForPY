@@ -39,6 +39,8 @@ void setup() {
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); 
   pinMode(A5, INPUT);  
+
+  analogReadResolution(12);
   
   Serial.begin(9600); // Set up serial monitor at 9600 BAUD, BAUD can probably increase
   delay(delay_val); // Delay for opening the serial monitor 
