@@ -17,7 +17,8 @@ float VOFF = 1.65; // This is the DC offset applied to the output of the SparkFu
 float VMIN = 0.0; // This is the min DC value that can be handled by the Itsy-Bitsy M4
 float VMAX = 3.3; // This is the max DC value that can be handled by the Itsy-Bitsy M4 
 
-int PLACES = 4; // Output voltage readings to the nearest millivolt
+//int PLACES = 4; // Output voltage readings to the nearest millivolt, it's only really accurate to 10 mV though
+int PLACES = 3; // Output voltage readings to the nearest 10 millivolt
 
 //int DCPINA = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 //int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
@@ -34,7 +35,8 @@ void setup() {
   // put your setup code here, to run once:
 
   pinMode(A0, OUTPUT); // Use A0 as analog output channel 0 - 3.3 V
-  pinMode(A1, OUTPUT); // Use A1 as analog output channel 0 - 3.3 V
+  //pinMode(A1, OUTPUT); // Use A1 as analog output channel 0 - 3.3 V
+  pinMode(A1, INPUT); // Use A1 as analog output channel 0 - 3.3 V
   pinMode(A2, INPUT); // Use remaining channels as analog input 0 - 3.3 V on all
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); 
@@ -92,21 +94,21 @@ void loop() {
             analogVoltageWrite(A0, Vout); 
             //delay(delay_val); // give the device time to settle at its new voltage
         }
-        else if(input[0] == writeAngStrB){ // write analog output on pin A1
-            input.remove(0,1); // remove the write analog command from the start of the string
-            // VMIN = 0 V, VMAX = 3.3 V
-            float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
-  
-            if(loud){
-              Serial.println("Perform steps necessary for write analog command"); 
-              Serial.print("The desired voltage is: "); 
-              Serial.print(Vout); 
-              Serial.println(" V"); 
-            }
-  
-            analogVoltageWrite(A1, Vout); 
-            //delay(delay_val); // give the device time to settle at its new voltage
-        }
+//        else if(input[0] == writeAngStrB){ // write analog output on pin A1
+//            input.remove(0,1); // remove the write analog command from the start of the string
+//            // VMIN = 0 V, VMAX = 3.3 V
+//            float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
+//  
+//            if(loud){
+//              Serial.println("Perform steps necessary for write analog command"); 
+//              Serial.print("The desired voltage is: "); 
+//              Serial.print(Vout); 
+//              Serial.println(" V"); 
+//            }
+//  
+//            analogVoltageWrite(A1, Vout); 
+//            //delay(delay_val); // give the device time to settle at its new voltage
+//        }
         else if(input[0] == readAngStr){ // test to see if read voltage command is required          
           // input was the read voltage command
           if(loud){
@@ -119,6 +121,8 @@ void loop() {
           else{  
             // During operation you will only want to look at the voltages that are being read at the analog pins
             // No need for messages to be printed to the console. 
+            Serial.print( analogVoltageRead(A1), PLACES); 
+            Serial.print(" , ");
             Serial.print( analogVoltageRead(A2), PLACES); 
             Serial.print(" , "); 
             Serial.print( analogVoltageRead(A3), PLACES); 
