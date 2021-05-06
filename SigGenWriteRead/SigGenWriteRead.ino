@@ -34,12 +34,10 @@ float VMIN = 0.0; // This is the min DC value that can be handled by the Arduino
 float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino Micro 
 float VPULLUP = 2.5221; // Pull-Up Level used for reading AC signals
 float FMIN = 20.0; // Minimum frequency setting for the board, I've found that output is stable at 20 Hz
-float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
+float FDEFAULT = 500.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
-unsigned int SMIN = 5; // Minumum sampling time in us, should enable sampling of 100 kHz wave
-unsigned int SMAX = 15000; // Maximum sampling time in us, should enable sample of 34 Hz wave
 
-int PLACES = 4; // Output voltage readings to the nearest millivolt
+int PLACES = 3; // Output voltage readings to the nearest millivolt
 
 // Commands defined here should be consistent with the DC test code
 const char readCmdStr = 'r'; // read data command string
@@ -73,38 +71,35 @@ void setup() {
   if(loud){
     Serial.println("Reset!"); // Test Code
   }
-  delay(delay_val); // Wait for Minigen to be reset. At power up, the output frequency will be 100Hz.
-
+  
   gen.setMode(MiniGen::SINE); // I didnt add this in the working code but will comment it here as a reminder. Not necessary as the minigen begins with sine
-  delay(delay_val); // Delay for opening the serial monitor 
- 
+   
   gen.setFreqAdjustMode(MiniGen::FULL); // a FULL write takes longer but writes the entire frequency word, so you can change from any frequency to any other frequency.
   if(loud){
     Serial.println("Full!");
   }
-  delay(delay_val); // Delay for opening the serial monitor 
-  
+    
   static float frequency = FDEFAULT; // Set a starting frequency (Probably unneccessary)
   if(loud){
     Serial.println("frequency = 1000.0"); 
   }
-  delay(delay_val); // Delay for opening the serial monitor 
-  
+    
   unsigned long freqReg = gen.freqCalc(frequency); // freqCalc() makes a useful 32-bit value out of the frequency value
   if(loud){
     Serial.println("calculated"); 
   }
-  delay(delay_val); // Delay for opening the serial monitor 
-  
+    
   gen.adjustFreq(MiniGen::FREQ0, freqReg); // Adjust the frequency. This is a full 32-bit write.
   if(loud){
     Serial.println("adjusted");
   }
-  delay(delay_val); // Delay for opening the serial monitor
+  
   if(loud){
     Serial.println("ready");
   }
 
+  delay(delay_val); // Delay for opening the serial monitor
+  
   // At this point if everything has executed correctly you should see a 1 Vpp sine wave with frequency of 1 kHz
   // Admittedly difficult to check if you don't have an oscilloscope
 }
@@ -120,7 +115,7 @@ void loop() {
     // read the command that has been input
     // then tell the board to take appropriate action
     // either read some voltage values or write a frequency
-    //Serial.println("Write something"); 
+    
     String input = Serial.readString(); //  
     deleteRead = Serial.read();  // read the incoming byte again to delete it from the buffer as the above command does not delete the data.
     if(loud){
@@ -137,14 +132,17 @@ void loop() {
       
       if(input[0] == readCmdStr){ // test to see if read voltage command is required
         // This loop will perform multiple measurements of the voltages on pins A0 and A1 and reaturn the max values found
-        int Nreads = 5000; 
+        int Nreads = 100; 
         int count = 0; 
-        float A0max = 0.0, A1max = 0.0, A0min = 6.0, A1min = 6.0, A0hi, A0lo, A1hi, A1lo, A0val, A1val; 
+        //float A0max = 0.0, A1max = 0.0, A0min = 6.0, A1min = 6.0, A0hi, A0lo, A1hi, A1lo, A0val, A1val; 
+        int A0max = -1, A1max = -1, A0min = 5000, A1min = 5000, A0hi, A0lo, A1hi, A1lo; 
+        float A0val, A1val, mult; 
         while(count < Nreads){
 
-          A0val = analogVoltageRead(A0); // get the voltage reading from pin A0
-          
-          A1val = analogVoltageRead(A1); // get the voltage reading from pin A1
+          //A0val = analogVoltageRead(A2); // get the voltage reading from pin A2          
+          //A1val = analogVoltageRead(A3); // get the voltage reading from pin A3
+          A0val = analogRead(A2); // get the voltage reading from pin A2          
+          A1val = analogRead(A3); // get the voltage reading from pin A3
 
           // test readings to see if they are max values
           if( A0val > A0max){
@@ -168,9 +166,11 @@ void loop() {
         }
 
         // Store measured peak-to-peak voltage in A0val and A1val
-        A0val = A0max - A0min; 
+        mult = 5.0/1024.0; 
+        
+        A0val = float( A0max - A0min ) * mult; 
 
-        A1val = A1max - A1min; 
+        A1val = float( A1max - A1min ) * mult; 
                 
         // During operation you will only want to look at the voltages that are being read at the analog pins
         // No need for messages to be printed to the console.         
@@ -204,39 +204,6 @@ void loop() {
         gen.adjustFreq(MiniGen::FREQ0, freqReg); // Adjust the frequency. This is a full 32-bit write.
 
         Serial.println("Frequency Updated");         
-      }
-      else if(input[0] == smplData){
-        // Must try and reduce the amount of time spent printing the data points
-        // Sample the data, store it in memory, then print it to serial console
-        // See if you can print it in one line so that it can be read
-
-        // Sampling is not very accurate for frequencies above 100 Hz
-        // Sampling is accurate to within 1 Hz in the range [20 Hz, 100 Hz]
-
-        const int Nsmpls = 1000; 
-        int smpl_data[Nsmpls]; // declare an array to hold the bit readings the represent voltage values
-        //unsigned long tsmpl = 1; // try a fixed sample period for now, units of ms
-        // https://www.arduino.cc/reference/en/language/functions/time/delaymicroseconds/
-        input.remove(0,1); // remove the smplData command from the start of the string
-        unsigned int tsmpl = min( max( SMIN, input.toInt() ), SMAX );
-
-        // sample the data, storing the bit values only, these can be converted later
-        for(int i = 0; i<Nsmpls; i++){
-          smpl_data[i] = analogRead(A0);          
-          delayMicroseconds(tsmpl);  
-        }
-
-        // print the data to the screen, since the data has already been sampled it doesn't matter how long the printing takes
-        // all data must be printed on single line, since LabVIEW can only read single line at a time
-        for(int i=0; i<Nsmpls; i++){
-          Serial.print( convertVoltageRead( smpl_data[i] ), PLACES); 
-          if(i < Nsmpls - 1){
-            Serial.print(" , ");
-          }
-        }
-        Serial.println(); // make sure to end output with eof character to avoid throwing error in LabVIEW
-
-        // presumably array is deleted once it is out of scope? 
       }
       else{ // The command was input incorrectly
         
