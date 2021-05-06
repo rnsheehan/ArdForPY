@@ -53,7 +53,8 @@ uint32_t freqCalc(float desiredFrequency)
     // FR = Fmax / (-1+2^BR), Fmax = 16 MHz, BR = 28
     // For the alternative chip
     // Fmax = 25 MHz, BR = 28 => FR = 0.0931 Hz
-  return (uint32_t) (desiredFrequency / .0596);
+  //return (uint32_t) (desiredFrequency / .0596);
+  return (uint32_t) (desiredFrequency / .0931);
 }
 
 void adjustPhaseShift(PHASEREG reg, uint16_t newPhase)
