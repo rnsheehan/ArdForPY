@@ -14,10 +14,10 @@ double Mult = (3.3 / 4096.0); // multiplicative constant for the voltage reading
 void setup() {
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
-  analogReadResolution(12);
+  //analogReadResolution(12);
 
-  //Mult = 3.3 / 1024.0; // 4096 = 2^10
-  Mult = (3.3 / 4096.0); // 4096 = 2^12
+  Mult = 3.3 / 1024.0; // 4096 = 2^10
+  //Mult = (3.3 / 4096.0); // 4096 = 2^12
 
   Serial.begin(9600);
   while (!Serial); // wait until Serial is ready

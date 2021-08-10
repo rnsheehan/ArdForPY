@@ -23,8 +23,8 @@
 MiniGen gen;
 
 // Constants used in the sketch
-int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
-unsigned long delay_val = 3000; // delay value in units of ms
+int loud = 1; // boolean needed for printing comments, debug commands etc, loud = 1 => print
+unsigned long delay_val = 1000; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
 int deleteRead = 0; // Variable to read in variable so it is deleted from the buffer. Not used. 
@@ -73,21 +73,29 @@ void setup() {
   }
   
   gen.setMode(MiniGen::SINE); // I didnt add this in the working code but will comment it here as a reminder. Not necessary as the minigen begins with sine
+
+  delay(delay_val); // Delay for opening the serial monitor
    
   gen.setFreqAdjustMode(MiniGen::FULL); // a FULL write takes longer but writes the entire frequency word, so you can change from any frequency to any other frequency.
   if(loud){
     Serial.println("Full!");
   }
+
+  delay(delay_val); // Delay for opening the serial monitor
     
   static float frequency = FDEFAULT; // Set a starting frequency (Probably unneccessary)
   if(loud){
-    Serial.println("frequency = 1000.0"); 
+    Serial.println("frequency = 500.0"); 
   }
+
+  delay(delay_val); // Delay for opening the serial monitor
     
   unsigned long freqReg = gen.freqCalc(frequency); // freqCalc() makes a useful 32-bit value out of the frequency value
   if(loud){
     Serial.println("calculated"); 
   }
+
+  delay(delay_val); // Delay for opening the serial monitor
     
   gen.adjustFreq(MiniGen::FREQ0, freqReg); // Adjust the frequency. This is a full 32-bit write.
   if(loud){

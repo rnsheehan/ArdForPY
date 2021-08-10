@@ -6,7 +6,7 @@
 
 // Constants used in the sketch
 int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
-unsigned long delay_val = 3000; // delay value in units of ms
+unsigned long delay_val = 500; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
 int deleteRead = 0; // Variable to read in variable so it is deleted from the buffer. Not used. 
@@ -23,7 +23,7 @@ int DCPINA = 9; // pin for outputting DC Values, it is a digital pin adapted for
 int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 
 // Commands defined here should be consistent with the AC test code
-const char readCmdStr = 'r'; // read data command string for reading max AC input
+const char readCmdStr = 'r'; // read data command string for reading max AC inputu
 const char writeCmdStr = 'w'; // write data command string for writing frequency values
 const char writeAngStrA = 'a'; // write analog output from DCPINA
 const char writeAngStrB = 'b'; // write analog output from DCPINB
