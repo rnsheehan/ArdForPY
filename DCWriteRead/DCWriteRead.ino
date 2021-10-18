@@ -26,8 +26,10 @@ int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for
 const char readCmdStr = 'r'; // read data command string for reading max AC inputu
 const char writeCmdStr = 'w'; // write data command string for writing frequency values
 const char writeAngStrA = 'a'; // write analog output from DCPINA
+const char writeAngStrAlt = 'o'; // write analog output from DCPINA, this ensures compatibility with Cuffe_Interface
 const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
+const char readAngStrAlt = 'i'; // read analog input, this ensures compatibility with Cuffe_Interface
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 
@@ -77,7 +79,7 @@ void loop() {
           Serial.println(input[0]);
         }
         
-        if(input[0] == writeAngStrA){ // write analog output on one of pin 3, 5, 6, 9, 10, 11, 13
+        if(input[0] == writeAngStrA || input[0] == writeAngStrAlt){ // write analog output on one of pin 3, 5, 6, 9, 10, 11, 13
             // output on DCPINA is followed by RC LPF comprising R = 1 kOhm, C = 100 uF
             // the idea is that you would read a voltage value from the input stream write out that value using PWM on one of the analog pins
             // except this isn't what PWM does. PWM does not vary amplitude only pulse duty cycle, however, by varying the pulse duty cycle length
@@ -133,7 +135,7 @@ void loop() {
             analogWrite(DCPINB, DC); // variable length duty cycle whose average output is Vout
             delay(delay_val); // give the device time to settle at its new voltage     
         }
-        else if(input[0] == readAngStr){ // test to see if read voltage command is required
+        else if(input[0] == readAngStr || input[0] == readAngStrAlt){ // test to see if read voltage command is required
           
           // input was the read voltage command
           if(loud){
