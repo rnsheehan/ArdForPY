@@ -20,8 +20,9 @@ from analogio import AnalogIn
 import supervisor # for listening to serial ports
 
 # Define the names of the pins being written to and listened to
-Vout = AnalogOut(board.A0)
-Vin1 = AnalogIn(board.A1)
+Vout = AnalogOut(board.A0) # use the analog outputs
+Vout1 = AnalogOut(board.A1) # use the analog outputs
+#Vin1 = AnalogIn(board.A1)
 Vin2 = AnalogIn(board.A2)
 Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
@@ -220,6 +221,45 @@ def Cuffe_Iface():
                     #print(get_voltage(Vin1), get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5)) # Prints to serial to be read by LabView
                     print(get_voltage(Vin2))
                     #print(Vin1.value)
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Two_Chan_Iface():
+    # method for writing out of two channels and reading into 4 channels
+    # R. Sheehan 18 - 11 - 2021
+
+    FUNC_NAME = ".Two_Chan_Iface()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        while True:
+            if supervisor.runtime.serial_bytes_available:   # Listens for a serial command
+                command = input()
+                if command.startswith("a"):                 # If the command starts with 'a' it knows it is an output (Write)
+                    try:                                    # In case user inputs NAN somehow
+                        SetVoltage = float(command[1:])     # Everything after the 'a' is the voltage
+                        if SetVoltage >= 0.0 and SetVoltage < 3.3: # Sets limits on the Output voltage to board specs
+                            Vout.value = dac_value(SetVoltage) # Set the voltage
+                        else:
+                            Vout.value = dac_value(0.0) # Set the voltage to zero in the event of SetVoltage range error
+                    except ValueError:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nVin must be a float'
+                        raise Exception
+                elif command.startswith("b"):               # If the command starts with 'b' it knows it is an output (Write)
+                    try:                                    # In case user inputs NAN somehow
+                        SetVoltage = float(command[1:])     # Everything after the 'b' is the voltage
+                        if SetVoltage >= 0.0 and SetVoltage < 3.3: # Sets limits on the Output voltage to board specs
+                            Vout1.value = dac_value(SetVoltage) # Set the voltage
+                        else:
+                            Vout1.value = dac_value(0.0) # Set the voltage to zero in the event of SetVoltage range error
+                    except ValueError:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nVin must be a float'
+                        raise Exception
+                elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
+                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5)) # Prints to serial to be read by LabView
+                else:
+                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5)) # Prints to serial to be read by LabView
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

@@ -21,7 +21,9 @@ import Measurement
 
 #Measurement.First_Script()
 
-Measurement.Cuffe_Iface() # This is for the Current Source Measurement
+#Measurement.Cuffe_Iface() # This is for the Current Source Measurement
+
+Measurement.Two_Chan_Iface() # This if the iface for the two-channel measurements
 
 #Measurement.AC_Read() # This is trying to read a sine wave
 
