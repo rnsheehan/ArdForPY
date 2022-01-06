@@ -1,6 +1,6 @@
 #include "src\\SparkFun_MiniGen_ISBY.h"
 
-unsigned long delay_val = 100; // delay value in units of ms
+unsigned long delay_val = 500; // delay value in units of ms
 float FMIN = 20.0; // Minimum frequency setting for the board
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
 
@@ -16,8 +16,8 @@ void setup() {
   pinMode(A3, INPUT);
   //analogReadResolution(12);
 
-  Mult = 3.3 / 1024.0; // 4096 = 2^10
-  //Mult = (3.3 / 4096.0); // 4096 = 2^12
+  //Mult = 3.3 / 1024.0; // 4096 = 2^10
+  Mult = (3.3 / 4096.0); // 4096 = 2^12
 
   Serial.begin(9600);
   while (!Serial); // wait until Serial is ready
