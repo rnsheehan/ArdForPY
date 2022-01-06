@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include "SparkFun_MiniGen.h"
 MiniGen gen;
-unsigned long delay_val = 100; // delay value in units of ms
+unsigned long delay_val = 1000; // delay value in units of ms
 float FMIN = 20.0; // Minimum frequency setting for the board
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
 
