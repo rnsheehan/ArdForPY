@@ -35,8 +35,8 @@ void setup() {
   // put your setup code here, to run once:
 
   pinMode(A0, OUTPUT); // Use A0 as analog output channel 0 - 3.3 V
-  //pinMode(A1, OUTPUT); // Use A1 as analog output channel 0 - 3.3 V
-  pinMode(A1, INPUT); // Use A1 as analog output channel 0 - 3.3 V
+  pinMode(A1, OUTPUT); // Use A1 as analog output channel 0 - 3.3 V
+  //pinMode(A1, INPUT); // Use A1 as analog output channel 0 - 3.3 V
   pinMode(A2, INPUT); // Use remaining channels as analog input 0 - 3.3 V on all
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); 
@@ -47,6 +47,12 @@ void setup() {
   
   Serial.begin(9600); // Set up serial monitor at 9600 BAUD, BAUD can probably increase
   delay(delay_val); // Delay for opening the serial monitor 
+
+  // prevent analog write bug from occurring
+  analogWrite(A0, 0); 
+  analogWrite(A1, 0); 
+  analogWrite(A0, 0); 
+  analogWrite(A1, 0);
 }
 
 void loop() {
@@ -86,7 +92,7 @@ void loop() {
   
             if(loud){
               Serial.println("Perform steps necessary for write analog command"); 
-              Serial.print("The desired voltage is: "); 
+              Serial.print("The desired voltage from A0 is: "); 
               Serial.print(Vout); 
               Serial.println(" V"); 
             }
@@ -94,21 +100,21 @@ void loop() {
             analogVoltageWrite(A0, Vout); 
             //delay(delay_val); // give the device time to settle at its new voltage
         }
-//        else if(input[0] == writeAngStrB){ // write analog output on pin A1
-//            input.remove(0,1); // remove the write analog command from the start of the string
-//            // VMIN = 0 V, VMAX = 3.3 V
-//            float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
-//  
-//            if(loud){
-//              Serial.println("Perform steps necessary for write analog command"); 
-//              Serial.print("The desired voltage is: "); 
-//              Serial.print(Vout); 
-//              Serial.println(" V"); 
-//            }
-//  
-//            analogVoltageWrite(A1, Vout); 
-//            //delay(delay_val); // give the device time to settle at its new voltage
-//        }
+        else if(input[0] == writeAngStrB){ // write analog output on pin A1
+            input.remove(0,1); // remove the write analog command from the start of the string
+            // VMIN = 0 V, VMAX = 3.3 V
+            float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
+  
+            if(loud){
+              Serial.println("Perform steps necessary for write analog command"); 
+              Serial.print("The desired voltage from A1 is: "); 
+              Serial.print(Vout); 
+              Serial.println(" V"); 
+            }
+  
+            analogVoltageWrite(A1, Vout); 
+            //delay(delay_val); // give the device time to settle at its new voltage
+        }
         else if(input[0] == readAngStr){ // test to see if read voltage command is required          
           // input was the read voltage command
           if(loud){
@@ -121,8 +127,8 @@ void loop() {
           else{  
             // During operation you will only want to look at the voltages that are being read at the analog pins
             // No need for messages to be printed to the console. 
-            Serial.print( analogVoltageRead(A1), PLACES); 
-            Serial.print(" , ");
+            //Serial.print( analogVoltageRead(A1), PLACES); 
+            //Serial.print(" , ");
             Serial.print( analogVoltageRead(A2), PLACES); 
             Serial.print(" , "); 
             Serial.print( analogVoltageRead(A3), PLACES); 
