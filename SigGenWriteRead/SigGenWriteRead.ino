@@ -23,7 +23,7 @@
 MiniGen gen;
 
 // Constants used in the sketch
-int loud = 1; // boolean needed for printing comments, debug commands etc, loud = 1 => print
+int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 1000; // delay value in units of ms
 
 float incomingByte = 0; // Variable to read in desire frequency from serial monitor
@@ -149,8 +149,8 @@ void loop() {
 
           //A0val = analogVoltageRead(A2); // get the voltage reading from pin A2          
           //A1val = analogVoltageRead(A3); // get the voltage reading from pin A3
-          A0val = analogRead(A2); // get the voltage reading from pin A2          
-          A1val = analogRead(A3); // get the voltage reading from pin A3
+          A0val = analogRead(A0); // get the voltage reading from pin A0      
+          A1val = analogRead(A1); // get the voltage reading from pin A1
 
           // test readings to see if they are max values
           if( A0val > A0max){
