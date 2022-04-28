@@ -20,8 +20,6 @@ from analogio import AnalogIn
 import supervisor # for listening to serial ports
 
 # Define the names of the pins being written to and listened to
-# pin definitions
-# https://learn.adafruit.com/introducing-adafruit-itsybitsy-m4/pinouts
 Vout = AnalogOut(board.A0) # use the analog outputs
 Vout1 = AnalogOut(board.A1) # use the analog outputs
 #Vin1 = AnalogIn(board.A1)
@@ -29,13 +27,9 @@ Vin2 = AnalogIn(board.A2)
 Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
-Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
 
 # Define the constants
-# For notes on the following see 
-# https://learn.adafruit.com/circuitpython-basics-analog-inputs-and-outputs/analog-to-digital-converter-inputs
-# ADC values in circuit python are all put in the range of 16-bit unsigned values so 0 - 65535 (-1+2**16)
-Vmax = Vin2.reference_voltage # max AO/AI value
+Vmax = 3.3 # max AO/AI value
 bit_scale = (64*1024) # 64 bits
 
 # Need the following functions to convert voltages to 12-bit readings
@@ -263,9 +257,9 @@ def Two_Chan_Iface():
                         ERR_STATEMENT = ERR_STATEMENT + '\nVin must be a float'
                         raise Exception
                 elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
-                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5), get_voltage(Vin6)) # Prints to serial to be read by LabView
+                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5)) # Prints to serial to be read by LabView
                 else:
-                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5), get_voltage(Vin6)) # Prints to serial to be read by LabView
+                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5)) # Prints to serial to be read by LabView
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
