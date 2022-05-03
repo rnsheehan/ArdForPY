@@ -6,6 +6,9 @@
 // Keep commands consistent with SigGen Sketch
 // R. Sheehan 16 - 11 - 2020
 
+// Details of Pinouts can be found here
+// https://learn.adafruit.com/introducing-adafruit-itsybitsy-m4/pinouts 
+
 // Constants used in the sketch
 int loud = 0; // boolean needed for printing comments, debug commands etc, loud = 1 => print
 unsigned long delay_val = 1000; // delay value in units of ms
@@ -41,6 +44,7 @@ void setup() {
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); 
   pinMode(A5, INPUT);  
+  pinMode(A6, INPUT); // Secret AI! 
 
   analogReadResolution(12); // in this case n-bits = 4096
   analogWriteResolution(10); // in this case n-bits = 4096
@@ -136,6 +140,8 @@ void loop() {
             Serial.print( analogVoltageRead(A4), PLACES); 
             Serial.print(" , "); 
             Serial.print( analogVoltageRead(A5), PLACES); 
+            Serial.print(" , "); 
+            Serial.print( analogVoltageRead(A6), PLACES); 
             Serial.println(""); 
           }
         }
