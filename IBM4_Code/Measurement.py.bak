@@ -15,6 +15,7 @@ import board
 import busio
 import time
 import digitalio
+import pwmio # required for PWM output
 from analogio import AnalogOut
 from analogio import AnalogIn
 import supervisor # for listening to serial ports
@@ -30,6 +31,7 @@ Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
 Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
+piezo = pwmio.PWMOut(board.D7, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
 
 # Define the constants
 # For notes on the following see 
@@ -245,22 +247,36 @@ def Two_Chan_Iface():
                 if command.startswith("a"):                 # If the command starts with 'a' it knows it is an output (Write)
                     try:                                    # In case user inputs NAN somehow
                         SetVoltage = float(command[1:])     # Everything after the 'a' is the voltage
-                        if SetVoltage >= 0.0 and SetVoltage < 3.3: # Sets limits on the Output voltage to board specs
+                        if SetVoltage >= 0.0 and SetVoltage < Vmax: # Sets limits on the Output voltage to board specs
                             Vout.value = dac_value(SetVoltage) # Set the voltage
                         else:
                             Vout.value = dac_value(0.0) # Set the voltage to zero in the event of SetVoltage range error
                     except ValueError:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nVin must be a float'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nVout must be a float in range [ 0, Vmax )'
                         raise Exception
                 elif command.startswith("b"):               # If the command starts with 'b' it knows it is an output (Write)
                     try:                                    # In case user inputs NAN somehow
                         SetVoltage = float(command[1:])     # Everything after the 'b' is the voltage
-                        if SetVoltage >= 0.0 and SetVoltage < 3.3: # Sets limits on the Output voltage to board specs
+                        if SetVoltage >= 0.0 and SetVoltage < Vmax: # Sets limits on the Output voltage to board specs
                             Vout1.value = dac_value(SetVoltage) # Set the voltage
                         else:
                             Vout1.value = dac_value(0.0) # Set the voltage to zero in the event of SetVoltage range error
                     except ValueError:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nVin must be a float'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nVout must be a float in range [ 0, Vmax )'
+                        raise Exception
+                elif command.startswith("p"): # switch on PWM output
+                    try:
+                        SetFrequency = int(command[1:])     # Everything after the 'p' is the frequency
+                        piezo.frequency = SetFrequency
+                        piezo.duty_cycle = 65535 // 2  # On 50%, It's possible to vary this but for now keep it at 50%
+                    except:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        raise Exception
+                elif command.startswith("q"): # switch off PWM output
+                    try:
+                        piezo.duty_cycle = 0  # Off
+                    except:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
                         raise Exception
                 elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
                     print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5), get_voltage(Vin6)) # Prints to serial to be read by LabView

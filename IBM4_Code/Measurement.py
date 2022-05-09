@@ -40,6 +40,16 @@ piezo = pwmio.PWMOut(board.D7, duty_cycle=0, frequency=440, variable_frequency=T
 Vmax = Vin2.reference_voltage # max AO/AI value
 bit_scale = (64*1024) # 64 bits
 
+# Define the resistors in the BP-UP converter
+R1 = 2.65 # kOhm
+R2 = 1.47 # kOhm
+R3 = 1.0 # kOhm
+K_BPUP = (R1*R2) + (R2*R3) + (R3*R1) # BP-UP constant
+M_BPUP = (R3*R2)/K_BPUP # slope in BP-UP conversion 
+M_BPUP_inv = 1.0 / M_BPUP # inverse of slope in BP-UP conversion
+Rp = (R1*R3)/(R1+R3) # Parallel resistance needed to identify reference level
+Sf = (R2+Rp) / Rp # scale factor in voltage divider used to identify reference level
+
 # Need the following functions to convert voltages to 12-bit readings
 # which can be understood by the board
 
@@ -233,6 +243,30 @@ def Cuffe_Iface():
         print(ERR_STATEMENT)
         print(e)
 
+def Reading():
+
+    # read the voltage levels at each of the 4 AI
+    # Assumes that DC-offset is connected to pin
+    # reads voltages through buffer in range [0, 3.3V]
+    # performs conversion to get real input to BP-UP circuits
+    # R. Sheehan 9 - 5 - 2022
+    
+    FUNC_NAME = ".Reading()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+    
+    try:
+        # It is necessary to read the DC offset over time as Vref changes over timel
+        DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
+        Vref = Sf * DC_offset # compute the reference level
+        V2real = M_BPUP_inv * ( get_voltage(Vin2) - DC_offset )
+        V3real = M_BPUP_inv * ( get_voltage(Vin3) - DC_offset )
+        V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset )
+        V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset )
+        print(V2real, V3real, V4real, V5real) # Prints to serial to be read by LabView
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
 def Two_Chan_Iface():
     # method for writing out of two channels and reading into 4 channels
     # R. Sheehan 18 - 11 - 2021
@@ -279,9 +313,9 @@ def Two_Chan_Iface():
                         ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
                         raise Exception
                 elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
-                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5), get_voltage(Vin6)) # Prints to serial to be read by LabView
+                    Reading()
                 else:
-                    print(get_voltage(Vin2), get_voltage(Vin3), get_voltage(Vin4), get_voltage(Vin5), get_voltage(Vin6)) # Prints to serial to be read by LabView
+                    Reading()
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
