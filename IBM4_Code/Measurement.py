@@ -262,7 +262,9 @@ def Reading():
         V3real = M_BPUP_inv * ( get_voltage(Vin3) - DC_offset )
         V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset )
         V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset )
-        print(V2real, V3real, V4real, V5real) # Prints to serial to be read by LabView
+        # format string to output to nearest 10 mV
+        output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
+        print(output_str) # Prints to serial to be read by LabView
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
