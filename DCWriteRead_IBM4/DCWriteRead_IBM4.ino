@@ -44,7 +44,7 @@ void setup() {
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); 
   pinMode(A5, INPUT);  
-  pinMode(A6, INPUT); // Secret AI! 
+  //pinMode(D2, INPUT); // Secret AI! Can only be accessed via Circuit Python It seems
 
   analogReadResolution(12); // in this case n-bits = 4096
   analogWriteResolution(10); // in this case n-bits = 4096
@@ -140,9 +140,10 @@ void loop() {
             Serial.print( analogVoltageRead(A4), PLACES); 
             Serial.print(" , "); 
             Serial.print( analogVoltageRead(A5), PLACES); 
-            Serial.print(" , "); 
-            Serial.print( analogVoltageRead(A6), PLACES); 
             Serial.println(""); 
+            //Serial.print(" , "); 
+            //Serial.print( analogVoltageRead(A6), PLACES); 
+            //Serial.println(""); 
           }
         }
         else{ // The command was input incorrectly
