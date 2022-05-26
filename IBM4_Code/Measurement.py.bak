@@ -31,7 +31,7 @@ Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
 Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
-piezo = pwmio.PWMOut(board.D7, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
+PWMpin = pwmio.PWMOut(board.D9, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
 
 # Define the constants
 # For notes on the following see 
@@ -258,10 +258,10 @@ def Reading():
         # It is necessary to read the DC offset over time as Vref changes over timel
         DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
         Vref = Sf * DC_offset # compute the reference level
-        V2real = M_BPUP_inv * ( get_voltage(Vin2) - DC_offset )
-        V3real = M_BPUP_inv * ( get_voltage(Vin3) - DC_offset )
-        V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset )
-        V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset )
+        V2real = get_voltage(Vin2) # no BP-UP on A2
+        V3real = get_voltage(Vin3) # no BP-UP on A3
+        V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset ) # BP-UP on A4
+        V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset ) # BP-UP on A5
         # format string to output to nearest 10 mV
         output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
         print(output_str) # Prints to serial to be read by LabView
@@ -303,14 +303,14 @@ def Two_Chan_Iface():
                 elif command.startswith("p"): # switch on PWM output
                     try:
                         SetFrequency = int(command[1:])     # Everything after the 'p' is the frequency
-                        piezo.frequency = SetFrequency
-                        piezo.duty_cycle = 65535 // 2  # On 50%, It's possible to vary this but for now keep it at 50%
+                        PWMpin.frequency = SetFrequency
+                        PWMpin.duty_cycle = 65535 // 2  # On 50%, It's possible to vary this but for now keep it at 50%
                     except:
                         ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
                         raise Exception
                 elif command.startswith("q"): # switch off PWM output
                     try:
-                        piezo.duty_cycle = 0  # Off
+                        PWMpin.duty_cycle = 0  # Off
                     except:
                         ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
                         raise Exception
