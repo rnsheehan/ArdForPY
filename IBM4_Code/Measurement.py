@@ -31,8 +31,10 @@ Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
 Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
-PWMpin = pwmio.PWMOut(board.D9, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
-SWTCHpin = pwmio.PWMOut(board.D7, duty_cycle=0, frequency=1000, variable_frequency=False) # setup PWM output
+PWMpin = pwmio.PWMOut(board.D5, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
+
+# it looks like each realy requires its own switching voltage
+Relpin = pwmio.PWMOut(board.D9, duty_cycle=0, frequency=1000, variable_frequency=False) # setup PWM voltage for Relay pin
 
 # Define the constants
 # For notes on the following see 
@@ -50,6 +52,12 @@ M_BPUP = (R3*R2)/K_BPUP # slope in BP-UP conversion
 M_BPUP_inv = 1.0 / M_BPUP # inverse of slope in BP-UP conversion
 Rp = (R1*R3)/(R1+R3) # Parallel resistance needed to identify reference level
 Sf = (R2+Rp) / Rp # scale factor in voltage divider used to identify reference level
+
+# Default Read Method is going to be high-impedance 
+# this means relays are set to normally closed, which means that Vin = Vout
+# to get low-impedance read method switch relays by turning on PWM 7 = SWTCHpin and set HI_IMPED = False
+# R. Sheehan 2 - 6 - 2022
+HI_IMPED = True
 
 # Need the following functions to convert voltages to 12-bit readings
 # which can be understood by the board
@@ -244,7 +252,7 @@ def Cuffe_Iface():
         print(ERR_STATEMENT)
         print(e)
 
-def Reading():
+def Reading(IMPED = True):
 
     # read the voltage levels at each of the 4 AI
     # Assumes that DC-offset is connected to pin
@@ -256,16 +264,29 @@ def Reading():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
     
     try:
-        # It is necessary to read the DC offset over time as Vref changes over timel
-        DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
-        Vref = Sf * DC_offset # compute the reference level
-        V2real = get_voltage(Vin2) # no BP-UP on A2
-        V3real = get_voltage(Vin3) # no BP-UP on A3
-        V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset ) # BP-UP on A4
-        V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset ) # BP-UP on A5
-        # format string to output to nearest 10 mV
-        #output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
-        output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
+        if IMPED: 
+            # High-impedance voltage reading Vout = Vin
+            V2real = get_voltage(Vin2) # no BP-UP on A2
+            V3real = get_voltage(Vin3) # no BP-UP on A3
+            V4real = get_voltage(Vin4) # no BP-UP on A4
+            V5real = get_voltage(Vin5) # no BP-UP on A5
+            # format string to output to nearest 10 mV
+            #output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
+            DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
+            output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
+        else: 
+            # Low-impedance voltage reading, i.e. reading through the BP-UP converter
+            # Vout = M_BPUP_inv * ( Vin - DC_offset )
+            # It is necessary to read the DC offset over time as Vref changes over timel
+            DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
+            #Vref = Sf * DC_offset # compute the reference level
+            V2real = M_BPUP_inv * ( get_voltage(Vin2) - DC_offset ) # BP-UP on A2
+            V3real = M_BPUP_inv * ( get_voltage(Vin3) - DC_offset ) # BP-UP on A3
+            V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset ) # BP-UP on A4
+            V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset ) # BP-UP on A5
+            # format string to output to nearest 10 mV
+            #output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
+            output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
         print(output_str) # Prints to serial to be read by LabView
     except Exception as e:
         print(ERR_STATEMENT)
@@ -279,6 +300,7 @@ def Two_Chan_Iface():
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
 
     try:
+        HI_IMPED = True
         while True:
             if supervisor.runtime.serial_bytes_available:   # Listens for a serial command
                 command = input()
@@ -308,30 +330,32 @@ def Two_Chan_Iface():
                         PWMpin.frequency = SetFrequency
                         PWMpin.duty_cycle = 65535 // 2  # On 50%, It's possible to vary this but for now keep it at 50%
                     except:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM ON Error'
                         raise Exception
                 elif command.startswith("q"): # switch off PWM output
                     try:
                         PWMpin.duty_cycle = 0  # Off
                     except:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM OFF Error'
                         raise Exception
-                elif command.startswith("f"): # switch on PWM output
+                elif command.startswith("f"): # switch ON PWM output to turn-on low-impedance reading
                     try:
-                        SWTCHpin.duty_cycle = 65535 # 100% i.e. fully on
+                        HI_IMPED = False
+                        Relpin.duty_cycle = 65535 # 100% i.e. fully on
                     except:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nError relay ON switch'
                         raise Exception
-                elif command.startswith("g"): # switch off PWM output
+                elif command.startswith("g"): # switch OFF PWM output to turn-off low-impedance reading
                     try:
-                        SWTCHpin.duty_cycle = 0  # Off
+                        HI_IMPED = True
+                        Relpin.duty_cycle = 0  # Off
                     except:
-                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        ERR_STATEMENT = ERR_STATEMENT + '\nError relay OFF switch'
                         raise Exception
                 elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
-                    Reading()
+                    Reading(HI_IMPED)
                 else:
-                    Reading()
+                    Reading(HI_IMPED)
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)

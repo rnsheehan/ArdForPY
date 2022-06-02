@@ -32,6 +32,7 @@ Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
 Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
 PWMpin = pwmio.PWMOut(board.D9, duty_cycle=0, frequency=440, variable_frequency=True) # setup PWM output
+SWTCHpin = pwmio.PWMOut(board.D7, duty_cycle=0, frequency=1000, variable_frequency=False) # setup PWM output
 
 # Define the constants
 # For notes on the following see 
@@ -263,7 +264,8 @@ def Reading():
         V4real = M_BPUP_inv * ( get_voltage(Vin4) - DC_offset ) # BP-UP on A4
         V5real = M_BPUP_inv * ( get_voltage(Vin5) - DC_offset ) # BP-UP on A5
         # format string to output to nearest 10 mV
-        output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
+        #output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
+        output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
         print(output_str) # Prints to serial to be read by LabView
     except Exception as e:
         print(ERR_STATEMENT)
@@ -311,6 +313,18 @@ def Two_Chan_Iface():
                 elif command.startswith("q"): # switch off PWM output
                     try:
                         PWMpin.duty_cycle = 0  # Off
+                    except:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        raise Exception
+                elif command.startswith("f"): # switch on PWM output
+                    try:
+                        SWTCHpin.duty_cycle = 65535 # 100% i.e. fully on
+                    except:
+                        ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
+                        raise Exception
+                elif command.startswith("g"): # switch off PWM output
+                    try:
+                        SWTCHpin.duty_cycle = 0  # Off
                     except:
                         ERR_STATEMENT = ERR_STATEMENT + '\nPWM Error of some kind'
                         raise Exception
