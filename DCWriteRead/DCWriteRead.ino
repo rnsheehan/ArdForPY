@@ -17,7 +17,7 @@ float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino
 float FMIN = 100.0; // Minimum frequency setting for the board, it can actually go lower than this but I'm setting 100 Hz as lower limit
 float FDEFAULT = 1000.0; // Default frequency of board after setup, board will default to f = 100 Hz after calling gen.reset
 float FMAX = 3000000.0; // Maximum frequency setting for the board 3 MHz
-int PLACES = 3; // Output voltage readings to the nearest millivolt
+int PLACES = 2; // Output voltage readings to the nearest 10 millivolt
 
 int DCPINA = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
