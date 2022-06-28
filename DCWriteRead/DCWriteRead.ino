@@ -32,6 +32,8 @@ const char readAngStr = 'l'; // read analog input
 const char readAngStrAlt = 'i'; // read analog input, this ensures compatibility with Cuffe_Interface
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
+String idCmd = "IDN"; // define the command that tells the board to print the device name
+String DEV_NAME = "Dev Name: VOA"; // identify the board with a string
 
 void setup() {
   // put your setup code here, to run once:
@@ -158,6 +160,10 @@ void loop() {
           Serial.print(" , "); 
           Serial.print( analogVoltageRead(A5), PLACES); 
           Serial.println(""); 
+        }
+        else if(input.equals(idCmd))
+        {
+            Serial.println(DEV_NAME); 
         }
         else{ // The command was input incorrectly
           
