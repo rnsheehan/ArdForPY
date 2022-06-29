@@ -33,7 +33,7 @@ const char readAngStrAlt = 'i'; // read analog input, this ensures compatibility
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 String idCmd = "IDN"; // define the command that tells the board to print the device name
-String DEV_NAME = "Dev Name: VOA"; // identify the board with a string
+String DEV_NAME = "Dev Name: T-Probe"; // identify the board with a string
 
 void setup() {
   // put your setup code here, to run once:
