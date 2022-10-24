@@ -2,8 +2,8 @@ import supervisor
 import time
 import board
 import pwmio
-import busio # this may be needed to read data from pin D2
-import digitalio # this may be needed to read data from pin D2
+#import busio # I thought these might be needed 
+#import digitalio # but they're not required
 from analogio import AnalogIn
 from analogio import AnalogOut
 
@@ -38,9 +38,9 @@ bit_scale = (64*1024) # 64 bits
 
 # Functions to convert from 12-bit to Volt.
 def dac_value(volts):
-    return int(volts / 3.3 * 65535)
+    return int(volts / Vmax * bit_scale)
 def get_voltage(pin):
-    return (pin.value * 3.3) / 65535
+    return (pin.value * Vmax) / bit_scale
 def get_PWM(percentage):
     return (int(percentage/100.0*0xffff+0.5))
 while True:

@@ -114,7 +114,7 @@ while True:
                 elif Chan == 4:
                     Pin = Vin6
                 else:
-                    print('Channel out of range: 0 - 3')
+                    print('Channel out of range: 0 - 4')
                 if N < 1:
                     print('Must read at least one value')
             except ValueError as ex:
@@ -147,7 +147,7 @@ while True:
                 elif Chan == 4:
                     Pin = Vin6
                 else:
-                    print('Channel out of range: 0 - 3')
+                    print('Channel out of range: 0 - 4')
                 if N < 1:
                     print('Must average at least one value')
             except ValueError as ex:
@@ -178,7 +178,7 @@ while True:
                 elif Chan == 4:
                     Pin = Vin6
                 else:
-                    print('Channel out of range: 0 - 3')
+                    print('Channel out of range: 0 - 4')
                 if N < 1:
                     print('Must read at least one value')
             except ValueError as ex:
@@ -192,6 +192,142 @@ while True:
                     for i in range(N):
                         Values[i] = Pin.value
                     print("Output", Chan, "=", str(Values[0]), end=' ')
+                    for i in range(1, N):
+                        print(",", str(Values[i]), end=' ')
+                    print()
+        if command.startswith("Diff_Read"):
+            try:
+                Tokens = command[9:].split(":")
+                ChanPlus = int(Tokens[0])
+                if ChanPlus == 0:
+                    Pplus = Vin2
+                elif ChanPlus == 1:
+                    Pplus = Vin3
+                elif ChanPlus == 2:
+                    Pplus = Vin4
+                elif ChanPlus == 3:
+                    Pplus = Vin5
+                elif ChanPlus == 4:
+                    Pplus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                ChanMinus = int(Tokens[1])
+                if ChanMinus == 0:
+                    Pminus = Vin2
+                elif ChanMinus == 1:
+                    Pminus = Vin3
+                elif ChanMinus == 2:
+                    Pminus = Vin4
+                elif ChanMinus == 3:
+                    Pminus = Vin5
+                elif ChanMinus == 4:
+                    Pminus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                N = int(Tokens[2])
+                if N < 1:
+                    print('Must read at least one value')
+            except ValueError as ex:
+                print('Channel must be an integer')
+                print(ex)
+            except:
+                print('Unknown problem')
+            else:
+                if ChanPlus in range(0, NRdChLim) and ChanMinus in range(0, NRdChLim) and N > 0:
+                    Values = [0] * N
+                    for i in range(N):
+                        Values[i] = get_voltage(Pplus)-get_voltage(Pminus)
+                    print("Output =", str(Values[0]), end=' ')
+                    for i in range(1, N):
+                        print(",", str(Values[i]), end=' ')
+                    print()
+        if command.startswith("Diff_Average"):
+            try:
+                Tokens = command[12:].split(":")
+                ChanPlus = int(Tokens[0])
+                if ChanPlus == 0:
+                    Pplus = Vin2
+                elif ChanPlus == 1:
+                    Pplus = Vin3
+                elif ChanPlus == 2:
+                    Pplus = Vin4
+                elif ChanPlus == 3:
+                    Pplus = Vin5
+                elif ChanPlus == 4:
+                    Pplus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                ChanMinus = int(Tokens[1])
+                if ChanMinus == 0:
+                    Pminus = Vin2
+                elif ChanMinus == 1:
+                    Pminus = Vin3
+                elif ChanMinus == 2:
+                    Pminus = Vin4
+                elif ChanMinus == 3:
+                    Pminus = Vin5
+                elif ChanMinus == 4:
+                    Pminus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                N = int(Tokens[2])
+                if N < 1:
+                    print('Must read at least one value')
+            except ValueError as ex:
+                print('Channel must be an integer')
+                print(ex)
+            except:
+                print('Unknown problem')
+            else:
+                if ChanPlus in range(0, NRdChLim) and ChanMinus in range(0, NRdChLim) and N > 0:
+                    Value = 0.0
+                    for i in range(N):
+                        Value += (get_voltage(Pplus) - get_voltage(Pminus))
+                    Value /= N
+                    print("Average =", str(Value))
+        if command.startswith("Diff_BRead"):
+            try:
+                Tokens = command[10:].split(":")
+                ChanPlus = int(Tokens[0])
+                if ChanPlus == 0:
+                    Pplus = Vin2
+                elif ChanPlus == 1:
+                    Pplus = Vin3
+                elif ChanPlus == 2:
+                    Pplus = Vin4
+                elif ChanPlus == 3:
+                    Pplus = Vin5
+                elif ChanPlus == 4:
+                    Pplus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                ChanMinus = int(Tokens[1])
+                if ChanMinus == 0:
+                    Pminus = Vin2
+                elif ChanMinus == 1:
+                    Pminus = Vin3
+                elif ChanMinus == 2:
+                    Pminus = Vin4
+                elif ChanMinus == 3:
+                    Pminus = Vin5
+                elif ChanMinus == 4:
+                    Pminus = Vin6
+                else:
+                    print('Channel out of range: 0 - 4')
+                N = int(Tokens[2])
+                if N < 1:
+                    print('Must read at least one value')
+            except ValueError as ex:
+                print('Channel must be an integer')
+                print(ex)
+            except:
+                print('Unknown problem')
+            else:
+                if ChanPlus in range(0, NRdChLim) and ChanMinus in range(0, NRdChLim) and N > 0:
+                    Values = [0] * N
+                    for i in range(N):
+                        Values[i] = Pplus.value - Pminus.value
+                    print("Output =", str(Values[0]), end=' ')
                     for i in range(1, N):
                         print(",", str(Values[i]), end=' ')
                     print()
