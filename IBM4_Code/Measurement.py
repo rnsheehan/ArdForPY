@@ -355,6 +355,7 @@ def Two_Chan_Iface():
                 elif command.startswith("l"):                # If the command starts with 'i' or 'l' it knows user is looking for Vin. (Read)
                     Reading(HI_IMPED)
                 else:
+                    # Default operation
                     Reading(HI_IMPED)
     except Exception as e:
         print(ERR_STATEMENT)
