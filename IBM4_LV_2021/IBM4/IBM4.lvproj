@@ -6,7 +6,7 @@
 		<Property Name="CCSymbols" Type="Str">OS,Win;CPU,x86;</Property>
 		<Property Name="NI.SortType" Type="Int">3</Property>
 		<Property Name="specify.custom.address" Type="Bool">false</Property>
-		<Item Name="IBM4.lvlib" Type="Library" URL="../IBM4.lvlib"/>
+		<Item Name="IBM4.lvlib" Type="Library" URL="../../../../../../C/Program Files (x86)/National Instruments/LabVIEW 2023/instr.lib/IBM4/IBM4.lvlib"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="VISA Configure Serial Port (Instr).vi" Type="VI" URL="/&lt;vilib&gt;/Instr/_visa.llb/VISA Configure Serial Port (Instr).vi"/>
@@ -23,8 +23,8 @@
 				<Property Name="DestinationCount" Type="Int">1</Property>
 				<Property Name="DistPart[0].flavorID" Type="Str"></Property>
 				<Property Name="DistPart[0].productID" Type="Str"></Property>
-				<Property Name="DistPart[0].productName" Type="Str">NI LabVIEW Run-Time Engine 2021 (64-bit)</Property>
-				<Property Name="DistPart[0].upgradeCode" Type="Str">{130967B8-62DA-3725-A46E-2E8360EA95EA}</Property>
+				<Property Name="DistPart[0].productName" Type="Str">NI LabVIEW Run-Time Engine 2021</Property>
+				<Property Name="DistPart[0].upgradeCode" Type="Str">{251E8668-4013-3671-857C-61D46B2AC827}</Property>
 				<Property Name="DistPartCount" Type="Int">1</Property>
 				<Property Name="INST_author" Type="Str">University College Cork</Property>
 				<Property Name="INST_autoIncrement" Type="Bool">true</Property>
@@ -35,7 +35,7 @@
 				<Property Name="INST_installerName" Type="Str">install.exe</Property>
 				<Property Name="INST_productName" Type="Str">IBM4</Property>
 				<Property Name="INST_productVersion" Type="Str">1.0.2</Property>
-				<Property Name="InstSpecBitness" Type="Str">64-bit</Property>
+				<Property Name="InstSpecBitness" Type="Str">32-bit</Property>
 				<Property Name="InstSpecVersion" Type="Str">21000000</Property>
 				<Property Name="MSI_arpCompany" Type="Str">University College Cork</Property>
 				<Property Name="MSI_autoselectDrivers" Type="Bool">true</Property>
