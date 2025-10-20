@@ -62,6 +62,13 @@ HI_IMPED = True
 # Need the following functions to convert voltages to 12-bit readings
 # which can be understood by the board
 
+# Define the constants
+# For notes on the following see 
+# https://learn.adafruit.com/circuitpython-basics-analog-inputs-and-outputs/analog-to-digital-converter-inputs
+# ADC values in circuit python are all put in the range of 16-bit unsigned values so 0 - 65535 (-1+2**16)
+Vmax = Vin2.reference_voltage # max AO/AI value
+bit_scale = (64*1024) # 64 bits
+
 def dac_value(volts):
     # convert a voltage to 10-bit value
 
