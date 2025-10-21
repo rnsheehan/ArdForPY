@@ -27,8 +27,11 @@ int PWM6 = 11; // pin for outputting DC Values, it is a digital pin adapted for 
 int PWM7 = 12; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM8 = 13; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 
-const char writeAngStrA = 'a'; // write analog output from PWM<x>
-const char readAngStr = 'l'; // read analog input
+int PWM_pins[8] = {PWM1, PWM2, PWM3, PWM4, PWM5, PWM6, PWM7, PWM8}; // Make an array of the PWM pin numbers to facilitate looping over all the pins
+
+const char writePWM = 'PWM'; // write analog output from PWM<x>
+const char writeAll = 'PWM'; // write analog output from all PWM pins, requires an array of input values
+const char readAI = 'l'; // read analog input
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 String idCmd = "IDN"; // define the command that tells the board to print the device name
@@ -88,7 +91,7 @@ void loop() {
           Serial.println(input[0]);
         }
         
-        if(input[0] == writeAngStrA){ // write analog output on one of pin 4, 5, 6, 9, 10, 11, 12, 13
+        if(input[0] == writePWM){ // write analog output on one of pin 4, 5, 6, 9, 10, 11, 12, 13
             // output on PWM<x> is followed by RC LPF comprising R = 1 kOhm, C = 100 uF
             // the idea is that you would read a voltage value from the input stream write out that value using PWM on one of the analog pins
             // except this isn't what PWM does. PWM does not vary amplitude only pulse duty cycle, however, by varying the pulse duty cycle length
@@ -125,7 +128,7 @@ void loop() {
             //analogWrite(pin, 255); // 100% duty cycle
             //delay(delay_val);       
         }
-        else if(input[0] == readAngStr){ // test to see if read voltage command is required
+        else if(input[0] == readAI){ // test to see if read voltage command is required
           
           // input was the read voltage command
           if(loud){
@@ -159,8 +162,11 @@ void loop() {
       else{ // The command was input incorrectly        
         Serial.println(ERR_STRING); 
       }      
+
     } // end if(Serial.available()>0)
+
   } // end if(Serial)
+
 } // end loop
 
 float analogVoltageRead(int pin)
