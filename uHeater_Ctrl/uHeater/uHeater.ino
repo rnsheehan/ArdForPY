@@ -18,20 +18,25 @@ float VMAX = 5.0; // This is the max DC value that can be handled by the Arduino
 
 int PLACES = 2; // Output voltage readings to the nearest 10 millivolt
 
-int PWM1 = 4; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM1 = 3; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM2 = 5; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM3 = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM4 = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM5 = 10; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int PWM6 = 11; // pin for outputting DC Values, it is a digital pin adapted for the purpose
-int PWM7 = 12; // pin for outputting DC Values, it is a digital pin adapted for the purpose
-int PWM8 = 13; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM7 = 13; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 
-int PWM_pins[8] = {PWM1, PWM2, PWM3, PWM4, PWM5, PWM6, PWM7, PWM8}; // Make an array of the PWM pin numbers to facilitate looping over all the pins
+const int N_PWM_Pins = 7; 
+int PWM_pins[N_PWM_Pins] = {PWM1, PWM2, PWM3, PWM4, PWM5, PWM6, PWM7}; // Make an array of the PWM pin numbers to facilitate looping over all the pins
 
-const char writePWM = 'PWM'; // write analog output from PWM<x>
-const char writeAll = 'PWM'; // write analog output from all PWM pins, requires an array of input values
+const char writePWM = 'p'; // write analog output from PWM<x>
+//const char writeAll = 'PWM'; // write analog output from all PWM pins, requires an array of input values
+const char writeGND = 'g'; // ground all PWM pins
 const char readAI = 'l'; // read analog input
+
+// If you wanted longer commands the search test on the Serial loop would have to be something like
+// input.substring(0,2).equals(writeAll)
+// R. Sheehan 22 - 10 - 2025
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 String idCmd = "IDN"; // define the command that tells the board to print the device name
@@ -47,8 +52,7 @@ void setup() {
   pinMode(PWM5, OUTPUT); 
   pinMode(PWM6, OUTPUT); 
   pinMode(PWM7, OUTPUT); 
-  pinMode(PWM8, OUTPUT); 
-  
+ 
   pinMode(A0, INPUT); 
   pinMode(A1, INPUT); 
   pinMode(A2, INPUT); 
@@ -67,7 +71,6 @@ void loop() {
   // Indicates if the specified Serial port is ready.
   // for details see https://www.arduino.cc/reference/en/language/functions/communication/serial/ifserial/
   if(Serial){
-    
     // Loop checks for characters entered into serial monitor. 
     // Characters must be typed in bar and then the "enter" button must be pressed.
     // for details see https://www.arduino.cc/reference/en/language/functions/communication/serial/available/
@@ -86,12 +89,8 @@ void loop() {
   
       if(isAlpha(input[0])){ // check that the command was input correctly
   
-        if(loud){
-          Serial.println("Input starts with a letter"); 
-          Serial.println(input[0]);
-        }
-        
-        if(input[0] == writePWM){ // write analog output on one of pin 4, 5, 6, 9, 10, 11, 12, 13
+        if( input[0] == writePWM ){ // write analog output on one of pin 4, 5, 6, 9, 10, 11, 12, 13
+            // input is of the form PWM<pin_no>:<volt_val>
             // output on PWM<x> is followed by RC LPF comprising R = 1 kOhm, C = 100 uF
             // the idea is that you would read a voltage value from the input stream write out that value using PWM on one of the analog pins
             // except this isn't what PWM does. PWM does not vary amplitude only pulse duty cycle, however, by varying the pulse duty cycle length
@@ -101,14 +100,23 @@ void loop() {
             // you can test the operation by inputting the call and printing the results
             // There is also an indexOf() function that could prove useful
 
-            input.remove(0,1); // remove the write analog command from the start of the string
+            //int pwm_pin_indx = input[3]; 
+            //int pwm_pin_no = PWM_pins[pwm_pin_indx.toInt() - 1]; 
+
+            //input.remove(0,1); // remove the write analog command from the start of the string
+            int PWM_pin_indx = min( max( 1, input.substring(1,2).toInt() ), 7 ); 
+            int PWM_pin_no = PWM_pins[PWM_pin_indx - 1]; 
             // VMIN = 0 V, VMAX = 5 V
-            float Vout = min( max( VMIN, input.toFloat() ), VMAX ); // save the output value, force it to output between limits
+            float Vout = min( max( VMIN, input.substring(3).toFloat() ), VMAX ); // save the output value, force it to output between limits
             int DC =  int( 51 * Vout ); // compute duty cycle based on DC = 255*(Vout/5) = 51 * Vout
             //int pin = 9; 
   
             if(loud){
               Serial.println("Perform steps necessary for write analog command"); 
+              Serial.print("PWM_pin_indx = ");
+              Serial.println(PWM_pin_indx); 
+              Serial.print("PWM_pin_no = ");
+              Serial.println(PWM_pin_no); 
               Serial.print("The desired voltage is: "); 
               Serial.print(Vout); 
               Serial.println(" V");  
@@ -118,8 +126,12 @@ void loop() {
               Serial.println(DC);
             }
   
-            analogWrite(DCPINA, DC); // variable length duty cycle whose average output is Vout
+            analogWrite(PWM_pin_no, DC); // variable length duty cycle whose average output is Vout
             delay(delay_val); // give the device time to settle at its new voltage
+
+            //for(int i=0;i<N_PWM_Pins; i++){
+            //  analogWrite(PWM_pins[i], 127); 
+            //}
   
             //analogWrite(pin, 0); // always off
             //analogWrite(pin, 64); // 25% duty cycle
@@ -152,12 +164,23 @@ void loop() {
           Serial.print( analogVoltageRead(A5), PLACES); 
           Serial.println(""); 
         }
-        else if(input.equals(idCmd)){
+        else if(input[0] == writeGND){ // ground all PWM Pins
+          if(loud){
+            Serial.println("Ground all PWM pins");  
+          }
+
+          for(int i=0;i<N_PWM_Pins; i++){
+            analogWrite(PWM_pins[i], 0); 
+          }
+        }
+        else if(input.startsWith(idCmd)){
+            // have to be careful when using the String equals function
+            // equals in this case will also include the line-ending which is not part of the string command
             Serial.println(DEV_NAME); 
         }
         else{ // The command was input incorrectly
           Serial.println(ERR_STRING); 
-        }        
+        }
       }
       else{ // The command was input incorrectly        
         Serial.println(ERR_STRING); 

@@ -22,6 +22,17 @@ int PLACES = 2; // Output voltage readings to the nearest 10 millivolt
 int DCPINA = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 int DCPINB = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
 
+int PWM1 = 3; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM2 = 5; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM3 = 6; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM4 = 9; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM5 = 10; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM6 = 11; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+int PWM7 = 18; // pin for outputting DC Values, it is a digital pin adapted for the purpose
+
+const int N_PWM_Pins = 7; 
+int PWM_pins[N_PWM_Pins] = {PWM1, PWM2, PWM3, PWM4, PWM5, PWM6, PWM7}; // Make an array of the PWM pin numbers to facilitate looping over all the pins
+
 // Commands defined here should be consistent with the AC test code
 const char readCmdStr = 'r'; // read data command string for reading max AC inputu
 const char writeCmdStr = 'w'; // write data command string for writing frequency values
@@ -30,6 +41,11 @@ const char writeAngStrAlt = 'o'; // write analog output from DCPINA, this ensure
 const char writeAngStrB = 'b'; // write analog output from DCPINB
 const char readAngStr = 'l'; // read analog input
 const char readAngStrAlt = 'i'; // read analog input, this ensures compatibility with Cuffe_Interface
+const char writeGND = 'g'; // ground all PWM pins
+
+// If you wanted longer commands the search test on the Serial loop would have to be something like
+// input.substring(0,2).equals(writeAll)
+// R. Sheehan 22 - 10 - 2025
 
 String ERR_STRING = "Error: Cannot parse input correctly"; // error message 
 String idCmd = "IDN"; // define the command that tells the board to print the device name
@@ -40,6 +56,7 @@ void setup() {
 
   pinMode(DCPINA, OUTPUT); 
   pinMode(DCPINB, OUTPUT);
+
   pinMode(A0, INPUT); 
   pinMode(A1, INPUT); 
   pinMode(A2, INPUT); 
@@ -161,8 +178,14 @@ void loop() {
           Serial.print( analogVoltageRead(A5), PLACES); 
           Serial.println(""); 
         }
-        else if(input.equals(idCmd))
-        {
+        else if(input[0] == writeGND){ // ground all PWM Pins
+          for(int i=0;i<N_PWM_Pins; i++){
+            analogWrite(PWM_pins[i], 0); 
+          }
+        }
+        else if(input.startsWith(idCmd)){
+            // have to be careful when using the String equals function
+            // equals in this case will also include the line-ending which is not part of the string command
             Serial.println(DEV_NAME); 
         }
         else{ // The command was input incorrectly
