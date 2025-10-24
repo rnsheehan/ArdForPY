@@ -47,7 +47,7 @@ def get_voltage(pin):
     return (pin.value * 3.3) / 65535
     #return ((pin.value*Vmax)/bit_scale)
     
-# 0xffff = hexadecimal representation of bit_scale    
+# 0xffff = hexadecimal representation of bit-scale    
 def get_PWM(percentage):
     return (int(percentage/100.0*0xffff+0.5))
     
