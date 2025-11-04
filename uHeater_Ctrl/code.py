@@ -20,14 +20,30 @@ pwm13 = pwmio.PWMOut(board.D13, duty_cycle=2 ** 15)
 # For listening for serial inputs
 ####
 # Define names for In and Out pins
-Vout0 = AnalogOut(board.A0)
-Vout1 = AnalogOut(board.A1)
+#Vout0 = AnalogOut(board.A0)
+#Vout1 = AnalogOut(board.A1)
+#Vin2 = AnalogIn(board.A2)
+#Vin3 = AnalogIn(board.A3)
+#Vin4 = AnalogIn(board.A4)
+#Vin5 = AnalogIn(board.A5)
+#Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
+#NRdChLim = 5 # Upper limit for no of channels that can read, previously NRdChLim = 4
+
+# According to https://learn.adafruit.com/introducing-adafruit-itsybitsy-m4/pinouts
+# It should be possible to have A0, A1, SCK, MO, MI as analog inputs
+# A0, A1 are explicitly identified as analog inputs
+# SCK, MO, MI are labelled as GPIO
+Vin0 = AnalogIn(board.A0)
+Vin1 = AnalogIn(board.A1)
 Vin2 = AnalogIn(board.A2)
 Vin3 = AnalogIn(board.A3)
 Vin4 = AnalogIn(board.A4)
 Vin5 = AnalogIn(board.A5)
-Vin6 = AnalogIn(board.D2) # according to pinout doc pin labelled as 2 is another AI
-NRdChLim = 5 # Upper limit for no of channels that can read, previously NRdChLim = 4
+#Vin6 = AnalogIn(board.SCK) # cannot use GPIO pin as analog input
+#Vin7 = AnalogIn(board.MO) # SCK, MO, MI are digital pins
+#Vin8 = AnalogIn(board.MI) # as such they can be configured to read Digital Hi / Lo only, not analog input
+Vin6 = AnalogIn(board.D2) 
+NRdChLim = 7 # Upper limit for no of channels that can read
 
 B2U_Cal = 14/3
 
@@ -78,14 +94,17 @@ def Simple_Vout_A1(command):
 def Simple_Read():
     try:
         # High-impedance voltage reading Vout = Vin
-        V2real = get_voltage(Vin2) # no BP-UP on A2
-        V3real = get_voltage(Vin3) # no BP-UP on A3
-        V4real = get_voltage(Vin4) # no BP-UP on A4
-        V5real = get_voltage(Vin5) # no BP-UP on A5
+        V0real = get_voltage(Vin0) 
+        V1real = get_voltage(Vin1) 
+        V2real = get_voltage(Vin2) 
+        V3real = get_voltage(Vin3) 
+        V4real = get_voltage(Vin4) 
+        V5real = get_voltage(Vin5) 
         # format string to output to nearest 10 mV
         #output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real}
         DC_offset = get_voltage(Vin6) # read the DC offset of the BP-UP circuit
-        output_str = '%(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{"v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
+        output_str = '%(v0)0.2f, %(v1)0.2f, %(v2)0.2f, %(v3)0.2f, %(v4)0.2f, %(v5)0.2f, %(v6)0.2f'%{
+        "v0":V0real, "v1":V1real, "v2":V2real, "v3":V3real, "v4":V4real, "v5":V5real, "v6":DC_offset}
         print(output_str) # Prints to serial to be read by LabVIEW
     except Exception as e:
         print('\nERROR: Simple_Read\n')
